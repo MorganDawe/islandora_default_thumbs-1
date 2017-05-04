@@ -39,7 +39,9 @@ function islandora_default_thumbs_theme($existing, $type, $theme, $path) {
  */
 function islandora_default_thumbs_preprocess_islandora_basic_collection_grid(&$variables) {
   module_load_include('inc', 'islandora_default_thumbs', 'includes/utilities');
-  islandora_default_thumbs_prepare_vars_for_page_templates($variables);
+
+  islandora_default_thumbs_prepare_vars_for_page_templates($variables, 'associated_objects_array');
+  dsm($variables, "Final variables");
 }
 
 /**
@@ -57,7 +59,14 @@ function islandora_default_thumbs_preprocess_islandora_basic_collection(&$variab
  */
 function islandora_default_thumbs_preprocess_islandora_objects_grid(&$variables) {
   module_load_include('inc', 'islandora_default_thumbs', 'includes/utilities');
+ // dsm($variables, "vars");
+ // $cmodel_configs = islandora_default_thumbs_get_result_set_cmodel_configs($variables, 'objects');
+ // dsm($cmodel_configs, "c conf");
   islandora_default_thumbs_prepare_vars_for_solr_page_template($variables, 'objects', 'standard');
+
+//   module_load_include('inc', 'islandora_default_thumbs', 'includes/db');
+//   $dt = islandora_default_thumb_get_node_config();
+
 }
 
 /**
@@ -88,4 +97,19 @@ function islandora_default_thumbs_preprocess_islandora_solr(&$variables) {
 function islandora_default_thumbs_preprocess_islandora_compound_prev_next(&$variables) {
   module_load_include('inc', 'islandora_default_thumbs', 'includes/utilities');
   islandora_default_thumbs_prepare_vars_for_solr_page_template($variables, 'themed_siblings', 'compound');
+}
+
+function islandora_default_thumbs_islandora_datastream_alter(AbstractObject $object, AbstractDatastream $datastream, array &$context) {
+  if ($datastream->id == 'TN') {
+    $path = islandora_social_media_thumbnail_get_imagecache_url($datastream);
+    // Path to local copy of the datastream image.
+    $uri = imagecache_external_generate_path($path);
+    $style_path = image_style_path('islandora_thumbnail_defaults', $uri);
+    if (file_exists($style_path)) {
+      drupal_unlink($style_path);
+    }
+    if ($uri) {
+      drupal_unlink($uri);
+    }
+  }
 }
